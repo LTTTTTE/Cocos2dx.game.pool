@@ -9,6 +9,7 @@ USING_NS_CC;
 #define MT19937 std::uniform_int_distribution<__int64>
 #define PTM_RATIO 76.8
 
+
 class HelloWorld : public Scene, public b2RayCastCallback {
 
 public:
@@ -24,8 +25,13 @@ public:
 	bool createBox2dWorld();
 	bool setBox2dWorld();
 
-	bool onTouchBegan(Touch* touch, Event* event);
 	bool addNewBody(Vec2 point);
+
+	bool dragFunc();
+
+	bool onTouchBegan(Touch* touch, Event* event);
+	bool onTouchMoved(Touch* touch, Event* event);
+	bool onTouchEnded(Touch* touch, Event* event);
 	virtual void onKeyPressed(EventKeyboard::KeyCode, Event*);
 	virtual void onKeyReleased(EventKeyboard::KeyCode, Event*);
 
@@ -37,7 +43,11 @@ public:
 
 	b2Vec2 drawP1;
 	b2Vec2 drawP2;
-
+	Vec2 TOUCH_POINT;
+	Vec2 DRAG_POINT;
+	Vec2 DRAG_VECTOR;
+	Vec2 TOUCH_END_POINT;
+	bool toggle_drag = false;
 
 	CREATE_FUNC(HelloWorld);
 
