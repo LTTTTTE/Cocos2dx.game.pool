@@ -20,7 +20,9 @@ public:
 
 	virtual bool init();
 	bool init_other();
-	b2World* world;
+	bool init_round();
+	bool init_background();
+	bool init_ast(Vec2 point);
 
 	bool createBox2dWorld();
 	bool setBox2dWorld();
@@ -28,6 +30,7 @@ public:
 	bool addNewBody(Vec2 point);
 
 	bool dragFunc();
+	bool round_end();
 
 	bool onTouchBegan(Touch* touch, Event* event);
 	bool onTouchMoved(Touch* touch, Event* event);
@@ -37,10 +40,9 @@ public:
 
 	void tick(float dt);
 
-
-
 	virtual float32 ReportFixture(b2Fixture* fix, const b2Vec2& point, const b2Vec2& normal, float32 action);
-
+	
+	b2World* world;
 	b2Vec2 drawP1;
 	b2Vec2 drawP2;
 	Vec2 TOUCH_POINT;
