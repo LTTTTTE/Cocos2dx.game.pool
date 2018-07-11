@@ -4,6 +4,8 @@
 std::random_device rd;
 std::mt19937_64 _MT19937(rd());
 
+ITEMS* ITEMS::item = nullptr;
+
 Scene* HelloWorld::createScene()
 {
 	Scene* scene = HelloWorld::create();
@@ -32,11 +34,12 @@ bool HelloWorld::init()
 	listener_keyboard->onKeyReleased = CC_CALLBACK_2(HelloWorld::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener_keyboard, this);
 
-	this->init_other();
-	this->init_round();
-	this->init_background();
+
 	this->createBox2dWorld();
 	this->setBox2dWorld();
+	this->init_other();
+	this->init_background();
+	this->init_round();
 	this->schedule(schedule_selector(HelloWorld::tick));
 
 	return true;
@@ -65,8 +68,13 @@ bool HelloWorld::init_round() {
 	spr_endzone->setScale(0.3);
 	this->addChild(spr_endzone, 3, "endzone");
 
-	//for(int i=0;i<10;i++)
-	//	init_ast(Vec2(num(_MT19937), num2(_MT19937)));
+	
+	for(int i=0;i<10;i++)
+		this->init_ast(Vec2((float)num(_MT19937), (float)num2(_MT19937)));
+
+	timeval tv;
+	gettimeofday(&tv, nullptr);
+	sec = tv.tv_usec / 1000 + tv.tv_sec * 1000;
 
 	return true;
 }
@@ -96,6 +104,37 @@ bool HelloWorld::init_background() {
 
 bool HelloWorld::init_ast(Vec2 point) {
 
+	auto spr_astronauts = Sprite::create("astronauts.png");
+	spr_astronauts->setScale(0.1);
+	spr_astronauts->setPosition(point);
+	MT19937 num(0, 360);
+	spr_astronauts->setRotation(static_cast<float>(num(_MT19937)));
+	CCLOG("%f", spr_astronauts->getRotation());
+	this->addChild(spr_astronauts, 1, "astronauts");
+
+	b2Body* body_dymic_ast;
+	b2BodyDef bodydef_dymic_ast;
+	
+	bodydef_dymic_ast.userData = spr_astronauts;
+	bodydef_dymic_ast.position.Set(point.x / PTM_RATIO, point.y / PTM_RATIO);
+	bodydef_dymic_ast.type = b2_dynamicBody;
+	bodydef_dymic_ast.linearDamping = 0.3f; //공기저항(운동벡터)
+	bodydef_dymic_ast.angularDamping = 0.8f; //공기저항(회전벡터)
+	
+	body_dymic_ast = world->CreateBody(&bodydef_dymic_ast);
+
+	b2FixtureDef fixdef_dymic_ast;
+	b2CircleShape shape_dymic_ast;
+
+	shape_dymic_ast.m_radius = (spr_astronauts->getContentSize().width) / 20 / PTM_RATIO;
+
+	fixdef_dymic_ast.shape = &shape_dymic_ast;
+	fixdef_dymic_ast.density = 1.0f;
+	fixdef_dymic_ast.friction = 0.5f;
+	fixdef_dymic_ast.restitution = 0.5f;
+
+	body_dymic_ast->CreateFixture(&fixdef_dymic_ast);
+	
 	return true;
 }
 
@@ -266,16 +305,40 @@ bool HelloWorld::round_end() {
 	auto spr_1 = (Sprite*)this->getChildByName("spr_ball_2"); if (spr_1 == nullptr)return true;
 	auto spr_2 = (Sprite*)this->getChildByName("endzone");
 
-	if (spr_1->getBoundingBox().containsPoint(spr_2->getPosition())) {
+	if (spr_1->getBoundingBox().containsPoint(spr_2->getPosition())&&!toggle_round_end) {
+
+		toggle_round_end = true;
+		auto particle = ParticleGalaxy::create();
+		particle->setScale(2.5);
+		particle->setPosition(spr_2->getPosition());
+		this->addChild(particle, 5);
 
 		CCLOG("ROUND_END");
+		auto act_delay = DelayTime::create(2);
+		auto seq_end = Sequence::create(act_delay, CallFunc::create(CC_CALLBACK_0(HelloWorld::changeScene, this)), nullptr);
 
-		Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
-		auto scene = TransitionFade::create(1, Clear_scene::createScene());
-		Director::getInstance()->replaceScene(scene);
+		this->runAction(seq_end);
+
 	}
+	return false;
+}
 
-	return true;
+bool HelloWorld::changeScene()
+{
+	CCLOG("Change Scene");
+
+	timeval tv;
+	gettimeofday(&tv, nullptr);
+	long sec_1 = tv.tv_usec / 1000 + tv.tv_sec * 1000;
+	sec_sub = ((float)(sec_1 - sec) / (float)1000) - 2.0;
+	
+	CCLOG("sec :  %.3f ", sec_sub);
+
+	Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+	auto scene = TransitionFade::create(1, Clear_scene::createScene());
+	Director::getInstance()->replaceScene(scene);
+
+	return false;
 }
 
 bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
@@ -334,7 +397,7 @@ bool HelloWorld::onTouchEnded(Touch * touch, Event * event){
 				auto spr = (Sprite*)b->GetUserData();
 				if (spr->getBoundingBox().containsPoint(TOUCH_POINT)) {
 
-					b->ApplyForceToCenter(b2Vec2(-(DRAG_VECTOR.x) * 2, -(DRAG_VECTOR.y) * 2), true);
+					b->ApplyForceToCenter(b2Vec2(-(DRAG_VECTOR.x) * 1, -(DRAG_VECTOR.y) * 1), true);
 				}
 
 			}
@@ -388,7 +451,7 @@ void HelloWorld::tick(float dt) {
 		}
 	}
 
-	round_end();
+	this->round_end();
 
 }
 
@@ -397,4 +460,12 @@ float32 HelloWorld::ReportFixture(b2Fixture * fix, const b2Vec2 & point, const b
 	//fix->GetBody()->ApplyForceToCenter(b2Vec2(200, 0), true);
 
 	return 0.0f;
+}
+
+ITEMS * ITEMS::getInstance()
+{
+	if (item == nullptr)
+		item - new ITEMS;
+
+	return item;
 }

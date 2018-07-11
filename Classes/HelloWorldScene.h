@@ -15,7 +15,9 @@ class HelloWorld : public Scene, public b2RayCastCallback {
 public:
 
 	int toggle_keyboard = 0;
-
+	bool toggle_round_end = false;
+	long sec;
+	float sec_sub;
 	static Scene* createScene();
 
 	virtual bool init();
@@ -31,6 +33,7 @@ public:
 
 	bool dragFunc();
 	bool round_end();
+	bool changeScene();
 
 	bool onTouchBegan(Touch* touch, Event* event);
 	bool onTouchMoved(Touch* touch, Event* event);
@@ -53,6 +56,10 @@ public:
 
 	CREATE_FUNC(HelloWorld);
 
-
 };
 
+class ITEMS : public HelloWorld{
+
+	static ITEMS* item;
+	static ITEMS* getInstance();
+};

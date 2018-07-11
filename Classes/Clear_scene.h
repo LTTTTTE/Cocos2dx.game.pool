@@ -3,15 +3,22 @@
 
 USING_NS_CC;
 
-class Clear_scene : public Layer {
+//class HelloWorld;
+
+class Clear_scene : public Layer{
 
 public:
 
-		static Scene* createScene();
-		virtual bool init();
-		CREATE_FUNC(Clear_scene);
+//	HelloWorld * hell;
+	float sec = 123.0;
+	std::vector<Sprite*> star;
 
-		std::vector<Sprite*> star;
+//	void instance(HelloWorld* p); 
+	static Scene* createScene();
+	virtual bool init();
+
+	CREATE_FUNC(Clear_scene);
+	
 
 };
 
